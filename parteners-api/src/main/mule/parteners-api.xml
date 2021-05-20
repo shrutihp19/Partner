@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:payments-api="http://www.mulesoft.org/schema/mule/payments-api"
+	xmlns:customer-api="http://www.mulesoft.org/schema/mule/customer-api"
+	xmlns:order-details-api="http://www.mulesoft.org/schema/mule/order-details-api" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/order-details-api http://www.mulesoft.org/schema/mule/order-details-api/current/mule-order-details-api.xsd
+http://www.mulesoft.org/schema/mule/customer-api http://www.mulesoft.org/schema/mule/customer-api/current/mule-customer-api.xsd
+http://www.mulesoft.org/schema/mule/payments-api http://www.mulesoft.org/schema/mule/payments-api/current/mule-payments-api.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e2f26a63-8a82-4de0-bd1d-94d64a4d1734" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<order-details-api:config name="OrderDetails_API_Config" doc:name="OrderDetails API Config" doc:id="8a48815e-861a-4f9a-a14e-34f80d550860" property_port="80" property_protocol="HTTP" property_basePath="/api" property_host="orderdetailsapi-project-shrutihp.us-e2.cloudhub.io"/>
+	<customer-api:config name="Customer_API_Config" doc:name="Customer API Config" doc:id="3a6357ab-0094-4334-97b8-8e3027456454" property_host="customersapi-project-shrutihp.us-e2.cloudhub.io" property_port="80" property_protocol="HTTP" property_basePath="/api" />
+	<payments-api:config name="Payments_API_Config" doc:name="Payments API Config" doc:id="71b9a6ee-bbf9-411f-b5cc-e004b5d2b96c" property_port="80" property_protocol="HTTP" property_basePath="/api" property_host="payment-project-shivam.us-e2.cloudhub.io"/>
+	<flow name="parteners-apiFlow" doc:id="8571bd37-31d2-44fa-a5a2-bfeb1dcab635" >
+		<http:listener doc:name="Listener" doc:id="73924fdd-34f1-4aeb-932a-cd0a2412642e" config-ref="HTTP_Listener_config" path="/Partener"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="a5fc37db-e514-42e8-887d-fe7a2c079bf3" >
+			<route >
+				<order-details-api:get-all-orders doc:name="Get All Orders" doc:id="33ba2513-6cf4-4f1e-998d-2ef155f45511" config-ref="OrderDetails_API_Config"/>
+			</route>
+			<route >
+				<customer-api:get-all-customer-details doc:name="Get All Customer details" doc:id="b5732fcf-50c6-4539-aae9-ff93412cdb6b" config-ref="Customer_API_Config"/>
+			</route>
+			<route >
+				<payments-api:get-all-payments-details doc:name="Get All Payments details" doc:id="8a6c0b89-ccd8-4482-b240-7899af3b17a7" config-ref="Payments_API_Config"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="0a1f080b-c01c-4383-a4b4-0c5de8e19908" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
